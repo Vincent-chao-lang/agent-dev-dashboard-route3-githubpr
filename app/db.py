@@ -10,7 +10,7 @@ from typing import Any, Iterable, Optional
 from contextlib import contextmanager
 from pathlib import Path
 
-from sqlalchemy import create_engine, text, Column, Integer, String
+from sqlalchemy import create_engine, text, Column, Integer, String, event, inspect
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool, QueuePool
 
@@ -324,7 +324,3 @@ def delete(model: type, id: int) -> bool:
             session.delete(obj)
             return True
         return False
-
-
-# Import required modules
-from sqlalchemy import event, inspect

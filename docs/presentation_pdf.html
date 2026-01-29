@@ -32,7 +32,7 @@
             position: absolute;
             top: 0;
             left: 0;
-            
+            animation: fadeIn 0.5s ease-in-out;
         }
 
         .slide.active {
@@ -382,41 +382,22 @@
         }
     </style>
 
-        <style media="print">
-            @page {
-                size: A4 landscape;
-                margin: 0;
-            }
+    <style>
+        /* Force all slides to be visible for PDF export */
+        .slide {
+            display: block !important;
+            position: relative !important;
+            page-break-after: always !important;
+            page-break-inside: avoid !important;
+            transform-origin: top left;
+        }
 
-            * {
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-                color-adjust: exact !important;
-            }
+        .slide:last-child {
+            page-break-after: avoid !important;
+        }
 
-            body {
-                background: #0a0a0a !important;
-            }
-
-            .slides-container {
-                position: static !important;
-            }
-
-            .slide {
-                display: block !important;
-                position: relative !important;
-                page-break-after: always !important;
-                page-break-inside: avoid !important;
-                width: 100% !important;
-                height: 100vh !important;
-                min-height: 100vh !important;
-            }
-
-            .slide:last-child {
-                page-break-after: avoid !important;
-            }
-
-            /* Hide navigation and controls */
+        /* Hide navigation in PDF */
+        @media print {
             .navigation,
             .slide-number,
             .progress,
@@ -424,73 +405,92 @@
                 display: none !important;
             }
 
-            /* Ensure all colors print correctly */
-            .feature-card,
-            .adse-step,
-            .use-case,
-            .comparison-column,
-            .arch-box,
-            .title h1,
-            .title .subtitle,
-            .title .tagline {
+            /* Print settings */
+            @page {
+                size: A4 landscape;
+                margin: 0;
+            }
+
+            /* Ensure colors print */
+            * {
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
-        </style>
 
-        <style>
-            /* Screen-only instruction banner */
-            .print-instruction {
-                position: fixed;
-                top: 10px;
-                right: 10px;
-                background: #fff;
-                color: #000;
-                padding: 15px;
-                border-radius: 8px;
-                font-size: 13px;
-                z-index: 10000;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-                max-width: 300px;
+            /* Scale content to fit page width */
+            .slides-container {
+                transform: scale(0.68);
+                transform-origin: top left;
+                width: 147%; /* 100% / 0.68 ≈ 147% */
+                height: auto;
             }
 
-            .print-instruction h4 {
-                margin: 0 0 10px 0;
-                color: #8ab4f8;
+            /* Adjust for scaled container */
+            body {
+                margin: 0;
+                padding: 0;
             }
+        }
 
-            .print-instruction p {
-                margin: 5px 0;
-                font-size: 12px;
-            }
+        /* Instruction banner (hidden in print) */
+        .pdf-instruction {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: white;
+            color: black;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 12px;
+            z-index: 99999;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            max-width: 300px;
+            font-family: Arial, sans-serif;
+        }
 
-            .print-instruction button {
-                margin-top: 10px;
-                padding: 5px 15px;
-                background: #8ab4f8;
-                border: none;
-                border-radius: 5px;
-                cursor: pointer;
-                font-weight: bold;
-            }
+        .pdf-instruction h4 {
+            margin: 0 0 10px 0;
+            color: #8ab4f8;
+        }
 
-            @media print {
-                .print-instruction {
-                    display: none !important;
-                }
+        .pdf-instruction p {
+            margin: 5px 0;
+            font-size: 11px;
+        }
+
+        .pdf-instruction button {
+            margin-top: 10px;
+            padding: 5px 15px;
+            background: #8ab4f8;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        @media print {
+            .pdf-instruction {
+                display: none !important;
             }
-        </style>
-    </head>
+        }
+    </style>
+</head>
 <body>
-    <div class="print-instruction">
+    <div class="pdf-instruction">
         <h4>📄 导出 PDF 说明</h4>
-        <p><strong>macOS:</strong> Cmd+P → "另存为 PDF"</p>
-        <p><strong>Windows:</strong> Ctrl+P → "Microsoft Print to PDF"</p>
-        <p><strong>重要:</strong> 勾选 "打印背景图形"</p>
-        <p><strong>纸张:</strong> A4 横向</p>
-        <button onclick="this.parentElement.remove()">关闭提示</button>
+        <p><strong>使用缩放适配方案</strong></p>
+        <p>内容会自动缩放 68% 以适应 A4 横向</p>
+        <p><strong>导出步骤：</strong></p>
+        <p style="font-size: 10px;">
+            1. 按 Cmd+P (Mac) 或 Ctrl+P (Win)<br>
+            2. 纸张: A4 横向<br>
+            3. 边距: "默认" 或 "无"<br>
+            4. ✅ 勾选 "打印背景图形"<br>
+            5. 保存为 PDF
+        </p>
+        <button onclick="this.parentElement.remove()">关闭</button>
     </div>
-    
+
     <div class="fullscreen-hint">按 F 进入全屏模式</div>
     <div class="slides-container">
 

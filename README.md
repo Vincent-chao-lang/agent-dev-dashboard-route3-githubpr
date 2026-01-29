@@ -1,6 +1,12 @@
-# Agent Dev Dashboard 
+# Agent Dev Dashboard
+
+[![GitHub stars](https://img.shields.io/github/stars/Vincent-chao-lang/agent-dev-dashboard-route3-githubpr?style=social)](https://github.com/Vincent-chao-lang/agent-dev-dashboard-route3-githubpr)
+[![GitHub forks](https://img.shields.io/github/forks/Vincent-chao-lang/agent-dev-dashboard-route3-githubpr?style=social)](https://github.com/Vincent-chao-lang/agent-dev-dashboard-route3-githubpr)
+[![GitHub license](https://img.shields.io/github/license/Vincent-chao-lang/agent-dev-dashboard-route3-githubpr)](https://github.com/Vincent-chao-lang/agent-dev-dashboard-route3-githubpr)
 
 > **基于 SOP 驱动的多 Agent 协作开发工作台**
+
+**📦 GitHub 仓库**: [https://github.com/Vincent-chao-lang/agent-dev-dashboard-route3-githubpr](https://github.com/Vincent-chao-lang/agent-dev-dashboard-route3-githubpr)
 
 一个集成了智谱 GLM-4.7 大模型的多 Agent 协作开发平台，通过标准化流程、产物约束、质量门禁和完整审计，将大模型 Agent 的风险降到可控范围。
 
@@ -36,7 +42,7 @@
 
 ```bash
 # 克隆项目
-git clone <repository-url>
+git clone https://github.com/Vincent-chao-lang/agent-dev-dashboard-route3-githubpr.git
 cd agent-dev-dashboard-route3-githubpr
 
 # 创建虚拟环境
