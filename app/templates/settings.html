@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>{{ t("user_settings") }}</h1>
+
+  <div class="card">
+    <h3>{{ t("llm_config") }}</h3>
+    <p class="muted">
+      {{ t("llm_config_source") }}:
+      <strong>{% if config_source == "user" %}{{ t("llm_source_user") }}{% elif config_source == "project" %}{{ t("llm_source_project") }}{% else %}{{ t("llm_source_global") }}{% endif %}</strong>
+    </p>
+
+    {% if message %}
+      <div class="card" style="border-color: {% if 'success' in message %}#2e7d32{% else %}#b71c1c{% endif %};">
+        <div style="color: {% if 'success' in message %}#a5d6a7{% else %}#ffc1c1{% endif %};">{{ t(message) }}</div>
+      </div>
+    {% endif %}
+
+    <form method="post" action="/settings/llm">
+      <label>{{ t("llm_provider") }}</label>
+      <select name="provider">
+        <option value="glm" {% if current_config.provider == 'glm' %}selected{% endif %}>{{ t("provider_glm") }}</option>
+        <option value="openai" {% if current_config.provider == 'openai' %}selected{% endif %}>{{ t("provider_openai") }}</option>
+      </select>
+
+      <label>{{ t("llm_api_key") }}</label>
+      <input
+        name="api_key"
+        type="password"
+        placeholder="{{ current_config_masked }}"
+        {% if current_config.api_key %}
+          value="***"
+        {% endif %}
+      />
+      <small class="muted">Leave empty to keep existing key</small>
+
+      <label>{{ t("llm_base_url") }}</label>
+      <input
+        name="base_url"
+        placeholder="https://open.bigmodel.cn/api/paas/v4/"
+        value="{{ current_config.base_url or '' }}"
+      />
+
+      <label>{{ t("llm_model") }}</label>
+      <input
+        name="model"
+        placeholder="glm-4-plus"
+        value="{{ current_config.model or '' }}"
+      />
+
+      <label>{{ t("llm_temperature") }}</label>
+      <input
+        name="temperature"
+        type="number"
+        step="0.1"
+        min="0"
+        max="1"
+        placeholder="0.7"
+        value="{{ current_config.temperature or '' }}"
+      />
+
+      <label>{{ t("llm_max_tokens") }}</label>
+      <input
+        name="max_tokens"
+        type="number"
+        min="1"
+        max="32000"
+        placeholder="4096"
+        value="{{ current_config.max_tokens or '' }}"
+      />
+
+      <div style="margin-top:12px;">
+        <button type="submit">{{ t("save_config") }}</button>
+        {% if current_config.source == "user" %}
+          <button type="submit" name="delete" value="true" style="margin-left:8px; background:#b71c1c;">{{ t("delete_config") }}</button>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+
+  <div class="card">
+    <h3>{{ t("effective_config") }}</h3>
+    <table style="width:100%; border-collapse:collapse;">
+      <tr>
+        <td style="padding:8px; border-bottom:1px solid #333;"><strong>{{ t("llm_provider") }}</strong></td>
+        <td style="padding:8px; border-bottom:1px solid #333;">
+          {% if effective_config.provider == 'glm' %}{{ t("provider_glm") }}{% else %}{{ effective_config.provider }}{% endif %}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px; border-bottom:1px solid #333;"><strong>{{ t("llm_base_url") }}</strong></td>
+        <td style="padding:8px; border-bottom:1px solid #333;">{{ effective_config.base_url or '-' }}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px; border-bottom:1px solid #333;"><strong>{{ t("llm_model") }}</strong></td>
+        <td style="padding:8px; border-bottom:1px solid #333;">{{ effective_config.model or '-' }}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px; border-bottom:1px solid #333;"><strong>{{ t("llm_temperature") }}</strong></td>
+        <td style="padding:8px; border-bottom:1px solid #333;">{{ effective_config.temperature or '-' }}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px;"><strong>{{ t("llm_max_tokens") }}</strong></td>
+        <td style="padding:8px;">{{ effective_config.max_tokens or '-' }}</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>Configuration Priority</h3>
+    <ol>
+      <li>{{ t("llm_source_user") }} - Your personal configuration</li>
+      <li>{{ t("llm_source_project") }} - Project-specific configuration</li>
+      <li>{{ t("llm_source_global") }} - Global default from .env file</li>
+    </ol>
+    <p class="muted">
+      Higher priority configurations override lower ones. For example, if you set a user configuration,
+      it will be used instead of the project or global configuration.
+    </p>
+  </div>
+{% endblock %}

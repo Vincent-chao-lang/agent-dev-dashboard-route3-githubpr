@@ -1,0 +1,473 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+.help-container {
+  display: flex;
+  gap: 30px;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+  padding-top: 80px;
+}
+
+/* Left sidebar - TOC */
+.help-sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 80px;
+  height: calc(100vh - 100px);
+  overflow-y: auto;
+}
+
+.help-sidebar-header {
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #222a33;
+}
+
+.help-sidebar-title {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #e8eaed;
+  margin: 0;
+}
+
+.help-search-box {
+  margin-bottom: 15px;
+}
+
+.help-search-box input {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #2a3340;
+  background: #0f1318;
+  color: #e8eaed;
+  font-size: 0.9rem;
+}
+
+.help-search-box input:focus {
+  outline: none;
+  border-color: #8ab4f8;
+}
+
+.help-toc {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.help-toc-item {
+  margin-bottom: 2px;
+}
+
+.help-toc-link {
+  display: block;
+  padding: 6px 10px;
+  color: #a7adb3;
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 0.88rem;
+  transition: all 0.2s;
+}
+
+.help-toc-link:hover {
+  background: #1b2430;
+  color: #e8eaed;
+}
+
+.help-toc-link.active {
+  background: #2a3340;
+  color: #8ab4f8;
+  font-weight: 500;
+}
+
+/* Right content area */
+.help-content-wrapper {
+  flex: 1;
+  min-width: 0;
+}
+
+.help-content-title {
+  font-size: 2rem;
+  margin: 0 0 20px 0;
+  color: #e8eaed;
+  border-bottom: 1px solid #222a33;
+  padding-bottom: 15px;
+}
+
+/* Markdown content styling */
+.help-content {
+  line-height: 1.7;
+  color: #c8ccd1;
+}
+
+.help-content h1 {
+  font-size: 1.8rem;
+  margin: 30px 0 15px 0;
+  color: #e8eaed;
+  border-bottom: 2px solid #2a3340;
+  padding-bottom: 10px;
+}
+
+.help-content h2 {
+  font-size: 1.5rem;
+  margin: 25px 0 12px 0;
+  color: #e8eaed;
+  border-bottom: 1px solid #222a33;
+  padding-bottom: 8px;
+}
+
+.help-content h3 {
+  font-size: 1.25rem;
+  margin: 20px 0 10px 0;
+  color: #c8ccd1;
+}
+
+.help-content h4 {
+  font-size: 1.1rem;
+  margin: 15px 0 8px 0;
+  color: #a7adb3;
+}
+
+.help-content p {
+  margin-bottom: 12px;
+}
+
+.help-content code {
+  background: #1b2430;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+  font-size: 0.88rem;
+  color: #f8c471;
+}
+
+.help-content pre {
+  background: #1b2430;
+  border: 1px solid #2a3340;
+  border-radius: 8px;
+  padding: 15px;
+  overflow-x: auto;
+  margin: 15px 0;
+}
+
+.help-content pre code {
+  background: none;
+  padding: 0;
+  color: #c8ccd1;
+  font-size: 0.85rem;
+}
+
+.help-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 15px 0;
+  font-size: 0.9rem;
+}
+
+.help-content table thead {
+  background: #1b2430;
+}
+
+.help-content table th,
+.help-content table td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid #222a33;
+}
+
+.help-content table th {
+  font-weight: 600;
+  color: #e8eaed;
+}
+
+.help-content table tbody tr:hover {
+  background: #11151a;
+}
+
+.help-content ul,
+.help-content ol {
+  margin: 12px 0;
+  padding-left: 24px;
+}
+
+.help-content li {
+  margin-bottom: 6px;
+}
+
+.help-content a {
+  color: #8ab4f8;
+  text-decoration: none;
+}
+
+.help-content a:hover {
+  text-decoration: underline;
+}
+
+.help-content blockquote {
+  margin: 15px 0;
+  padding: 10px 15px;
+  border-left: 4px solid #8ab4f8;
+  background: #11151a;
+  color: #a7adb3;
+}
+
+.help-content strong {
+  color: #e8eaed;
+  font-weight: 600;
+}
+
+.help-content em {
+  color: #a7adb3;
+}
+
+.help-content hr {
+  border: none;
+  border-top: 1px solid #222a33;
+  margin: 25px 0;
+}
+
+/* Search results */
+.help-search-results {
+  margin-top: 20px;
+}
+
+.help-search-result {
+  background: #11151a;
+  border: 1px solid #222a33;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.help-search-result:hover {
+  border-color: #8ab4f8;
+}
+
+.help-result-section {
+  color: #8ab4f8;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.help-result-context {
+  color: #a7adb3;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* Back to top button */
+.help-back-to-top {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background: #2a3340;
+  color: #8ab4f8;
+  border: 1px solid #222a33;
+  border-radius: 50%;
+  width: 45px;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+.help-back-to-top.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.help-back-to-top:hover {
+  background: #3a4350;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .help-container {
+    flex-direction: column;
+  }
+
+  .help-sidebar {
+    width: 100%;
+    position: static;
+    height: auto;
+    max-height: 300px;
+  }
+
+  .help-content-title {
+    font-size: 1.5rem;
+  }
+
+  .help-content h1 {
+    font-size: 1.5rem;
+  }
+
+  .help-content h2 {
+    font-size: 1.3rem;
+  }
+
+  .help-content table {
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .help-container {
+    padding: 15px;
+  }
+
+  .help-content-title {
+    font-size: 1.3rem;
+  }
+}
+</style>
+
+<div class="help-container">
+  <!-- Left Sidebar: TOC -->
+  <aside class="help-sidebar">
+    <div class="help-sidebar-header">
+      <h2 class="help-sidebar-title">{{ t("help") }}</h2>
+    </div>
+
+    <div class="help-search-box">
+      <form method="get" action="/help">
+        <input type="text" name="q" placeholder="{{ t("search_help_placeholder") }}" value="{{ search_query }}">
+      </form>
+    </div>
+
+    <nav class="help-toc">
+      {% for item in content.toc %}
+      <div class="help-toc-item">
+        <a href="#{{ item.anchor }}" class="help-toc-link" data-anchor="{{ item.anchor }}">
+          {{ item.title }}
+        </a>
+      </div>
+      {% endfor %}
+    </nav>
+  </aside>
+
+  <!-- Right Content Area -->
+  <main class="help-content-wrapper">
+    {% if search_results %}
+      <!-- Search results page -->
+      <h1 class="help-content-title">{{ t("search_results") }}: "{{ search_query }}"</h1>
+
+      <div class="help-search-results">
+        {% if search_results %}
+          {% for result in search_results %}
+          <a href="/help#{{ result.section_id }}" class="help-search-result">
+            <div class="help-result-section">{{ result.section }}</div>
+            <div class="help-result-context">{{ result.context | safe }}</div>
+          </a>
+          {% endfor %}
+        {% else %}
+          <div class="muted">{{ t("no_results") }}</div>
+        {% endif %}
+      </div>
+    {% else %}
+      <!-- Main help content -->
+      <h1 class="help-content-title">{{ content.title }}</h1>
+
+      <article class="help-content">
+        {{ content.content | safe }}
+      </article>
+    {% endif %}
+  </main>
+</div>
+
+<!-- Back to top button -->
+<button class="help-back-to-top" id="backToTop" title="返回顶部">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <path d="M18 15l-6-6-6 6"/>
+  </svg>
+</button>
+
+<script>
+// Active TOC highlighting and smooth scroll
+document.addEventListener('DOMContentLoaded', function() {
+  const tocLinks = document.querySelectorAll('.help-toc-link');
+  const headings = document.querySelectorAll('.help-content h2[id], .help-content h3[id]');
+  const backToTopBtn = document.getElementById('backToTop');
+
+  // Smooth scroll for TOC links
+  tocLinks.forEach(link => {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      const targetId = this.getAttribute('href').substring(1);
+      const target = document.getElementById(targetId);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        history.pushState(null, null, `#${targetId}`);
+      }
+    });
+  });
+
+  // Highlight active TOC item on scroll
+  function updateActiveToc() {
+    let currentHeading = null;
+    const scrollPosition = window.scrollY + 100;
+
+    headings.forEach(heading => {
+      if (heading.offsetTop <= scrollPosition) {
+        currentHeading = heading;
+      }
+    });
+
+    tocLinks.forEach(link => {
+      link.classList.remove('active');
+      if (currentHeading && link.getAttribute('data-anchor') === currentHeading.id) {
+        link.classList.add('active');
+      }
+    });
+  }
+
+  // Show/hide back to top button
+  function toggleBackToTop() {
+    if (window.scrollY > 300) {
+      backToTopBtn.classList.add('visible');
+    } else {
+      backToTopBtn.classList.remove('visible');
+    }
+  }
+
+  // Back to top click handler
+  backToTopBtn.addEventListener('click', function() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  // Scroll event listeners
+  let ticking = false;
+  window.addEventListener('scroll', function() {
+    if (!ticking) {
+      window.requestAnimationFrame(function() {
+        updateActiveToc();
+        toggleBackToTop();
+        ticking = false;
+      });
+      ticking = true;
+    }
+  });
+
+  // Initial update
+  updateActiveToc();
+
+  // Handle hash navigation
+  if (window.location.hash) {
+    const target = document.querySelector(window.location.hash);
+    if (target) {
+      setTimeout(() => {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
+  }
+});
+</script>
+{% endblock %}

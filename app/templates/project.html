@@ -1,0 +1,287 @@
+{% extends "base.html" %}
+{% block content %}
+  {% if error %}
+    <div class="card" style="border-color: #b71c1c;">
+      {% if error == 'user_not_found' %}
+        <div style="color: #ffc1c1;">{{ t("error_user_not_found") }}</div>
+      {% elif error == 'not_owner' %}
+        <div style="color: #ffc1c1;">{{ t("error_not_owner") }}</div>
+      {% else %}
+        <div style="color: #ffc1c1;">{{ error }}</div>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  <div class="row">
+    <div class="col">
+      <h1>{{ project.name }}</h1>
+      <div class="muted">{{ project.repo_url }} · {{ t("default_branch") }}={{ project.default_branch }}</div>
+      <div class="muted">{{ t("repo_local") }}: {{ project.local_path }}</div>
+
+      <div class="card">
+        <h3>{{ t("members") }}</h3>
+        {% for m in members %}
+          <div class="muted">- {{ m.username }} ({{ m.role }})</div>
+        {% endfor %}
+        {% if is_owner %}
+          <form method="post" action="/projects/{{project.id}}/members" style="margin-top:12px;">
+            <label>{{ t("add_member") }}</label>
+            <input name="username" required />
+            <label>{{ t("role") }}</label>
+            <select name="role">
+              <option value="member" selected>{{ t("role_member") }}</option>
+              <option value="readonly">{{ t("role_readonly") }}</option>
+            </select>
+            <div style="margin-top:12px;">
+              <button type="submit">{{ t("add") }}</button>
+            </div>
+          </form>
+        {% endif %}
+      </div>
+
+      {% if is_owner %}
+        <div class="card">
+          <h3>{{ t("invitations") }}</h3>
+          {% for inv in invitations %}
+            <div style="border-bottom:1px solid #333; padding:8px 0;">
+              <div style="font-family:monospace; font-weight:bold;">{{ inv.code }}</div>
+              <div class="muted">
+                {{ t("invitation_status") }}: {{ t("status_" + inv.status) }}
+                {% if inv.used_by_username %} · {{ t("invitation_used_by") }}: {{ inv.used_by_username }}{% endif %}
+              </div>
+              <div class="muted">{{ t("invitation_created_at") }}: {{ inv.created_at }}</div>
+              {% if inv.expires_at %}<div class="muted">{{ t("invitation_expires_at") }}: {{ inv.expires_at }}</div>{% endif %}
+              {% if inv.status == 'pending' %}
+                <form method="post" action="/projects/{{project.id}}/invitations/{{inv.id}}/revoke" style="margin-top:8px;">
+                  <button type="submit">{{ t("revoke") }}</button>
+                </form>
+              {% endif %}
+            </div>
+          {% else %}
+            <div class="muted">{{ t("no_invitations") }}</div>
+          {% endfor %}
+          <form method="post" action="/projects/{{project.id}}/invitations" style="margin-top:12px;">
+            <label>{{ t("expires_days") }}</label>
+            <input name="expires_days" type="number" min="0" value="7" required />
+            <div style="margin-top:12px;">
+              <button type="submit">{{ t("create_invitation") }}</button>
+            </div>
+          </form>
+        </div>
+      {% endif %}
+
+      {% if is_owner %}
+        <div class="card">
+          <h3>{{ t("llm_config") }}</h3>
+          <p class="muted">
+            {{ t("llm_config_source") }}:
+            <strong>{% if project_config_source == "project" %}{{ t("llm_source_project") }}{% else %}{{ t("llm_source_global") }}{% endif %}</strong>
+          </p>
+          <form method="post" action="/projects/{{project.id}}/llm">
+            <label>{{ t("llm_provider") }}</label>
+            <select name="provider">
+              <option value="glm" {% if project_config.provider == 'glm' %}selected{% endif %}>{{ t("provider_glm") }}</option>
+              <option value="openai" {% if project_config.provider == 'openai' %}selected{% endif %}>{{ t("provider_openai") }}</option>
+            </select>
+
+            <label>{{ t("llm_api_key") }}</label>
+            <input
+              name="api_key"
+              type="password"
+              placeholder="{{ project_config_masked }}"
+              {% if project_config.api_key %}
+                value="***"
+              {% endif %}
+            />
+            <small class="muted">Leave empty to keep existing key</small>
+
+            <label>{{ t("llm_base_url") }}</label>
+            <input
+              name="base_url"
+              placeholder="https://open.bigmodel.cn/api/paas/v4/"
+              value="{{ project_config.base_url or '' }}"
+            />
+
+            <label>{{ t("llm_model") }}</label>
+            <input
+              name="model"
+              placeholder="glm-4-plus"
+              value="{{ project_config.model or '' }}"
+            />
+
+            <label>{{ t("llm_temperature") }}</label>
+            <input
+              name="temperature"
+              type="number"
+              step="0.1"
+              min="0"
+              max="1"
+              placeholder="0.7"
+              value="{{ project_config.temperature or '' }}"
+            />
+
+            <label>{{ t("llm_max_tokens") }}</label>
+            <input
+              name="max_tokens"
+              type="number"
+              min="1"
+              max="32000"
+              placeholder="4096"
+              value="{{ project_config.max_tokens or '' }}"
+            />
+
+            <div style="margin-top:12px;">
+              <button type="submit">{{ t("save_config") }}</button>
+              {% if project_config.source == "project" %}
+                <button type="submit" name="delete" value="true" style="margin-left:8px; background:#b71c1c;">{{ t("delete_config") }}</button>
+              {% endif %}
+            </div>
+          </form>
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="col">
+      <div class="card">
+        <h3>{{ t("create_slice") }}</h3>
+        <form method="post" action="/projects/{{project.id}}/slices" id="sliceForm">
+          <label>{{ t("slice_title") }}</label>
+          <input name="title" required />
+
+          <label>{{ t("slice_scope") }}</label>
+          <textarea name="scope" required></textarea>
+
+          <label>{{ t("slice_out_of_scope") }}</label>
+          <textarea name="out_of_scope" required></textarea>
+
+          <label>{{ t("slice_risk_level") }}</label>
+          <select name="risk_level">
+            <option value="read-only">{{ t("risk_read_only") }}</option>
+            <option value="low-write" selected>{{ t("risk_low_write") }}</option>
+            <option value="high-risk">{{ t("risk_high_risk") }}</option>
+          </select>
+
+          <div style="margin-top:16px; padding:12px; border:1px solid #2a3340; border-radius:8px;">
+            <label style="display:flex; align-items:center; margin:0;">
+              <input type="checkbox" name="adse_enabled" id="adseToggle" style="width:auto; margin-right:8px;" />
+              <span style="font-weight:bold;">{{ t("adse_enable") }}</span>
+            </label>
+            <p class="muted" style="margin:8px 0 0 0; font-size:0.9rem;">
+              {{ t("adse_enable_desc") }}
+            </p>
+          </div>
+
+          <div id="adseSection" style="display:none; margin-top:16px; padding:12px; background:#0f1318; border-radius:8px;">
+            <h4 style="margin:0 0 12px 0;">{{ t("adse_four_quadrants") }}</h4>
+
+            <div style="margin-bottom:12px;">
+              <label>{{ t("adse_template_type") }}</label>
+              <select name="adse_template" id="adseTemplate" style="margin-bottom:8px;">
+                <option value="">{{ t("adse_no_template") }}</option>
+                <option value="web_api">{{ t("adse_template_web_api") }}</option>
+                <option value="frontend">{{ t("adse_template_frontend") }}</option>
+                <option value="backend_service">{{ t("adse_template_backend") }}</option>
+                <option value="data_pipeline">{{ t("adse_template_data") }}</option>
+              </select>
+              <small class="muted">{{ t("adse_template_desc") }}</small>
+            </div>
+
+            <div style="margin-bottom:12px;">
+              <label>{{ t("adse_quadrant_functional") }}</label>
+              <textarea name="functional_core" rows="3" class="adse-input">{{ t("adse_quadrant_functional_placeholder") }}</textarea>
+            </div>
+
+            <div style="margin-bottom:12px;">
+              <label>{{ t("adse_quadrant_physical") }}</label>
+              <textarea name="physical_constraints" rows="3" class="adse-input">{{ t("adse_quadrant_physical_placeholder") }}</textarea>
+            </div>
+
+            <div style="margin-bottom:12px;">
+              <label>{{ t("adse_quadrant_semantic") }} <span style="color:#ffc1c1;">*</span></label>
+              <textarea name="semantic_contract" rows="4" class="adse-input">{{ t("adse_quadrant_semantic_placeholder") }}</textarea>
+              <small class="muted" style="color:#b7f3b7;">{{ t("adse_quadrant_semantic_hint") }}</small>
+            </div>
+
+            <div style="margin-bottom:0;">
+              <label>{{ t("adse_quadrant_exceptions") }}</label>
+              <textarea name="exceptions_edges" rows="3" class="adse-input">{{ t("adse_quadrant_exceptions_placeholder") }}</textarea>
+            </div>
+          </div>
+
+          <div style="margin-top:12px;">
+            <button type="submit">{{ t("create_slice") }}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <h2>{{ t("slices") }}</h2>
+  {% for s in slices %}
+    <div class="card">
+      <h3><a href="/slices/{{s.id}}">Slice {{s.id}}: {{ s.title }}</a></h3>
+      <div class="muted">{{ t("branch") }}={{ s.branch_name }} · {{ t("status") }}={{ s.status }} · {{ t("risk") }}={{ s.risk_level }}</div>
+    </div>
+  {% else %}
+    <div class="card muted">{{ t("no_slices") }}</div>
+  {% endfor %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+// ADSE Enhancement Toggle
+document.addEventListener('DOMContentLoaded', function() {
+  const adseToggle = document.getElementById('adseToggle');
+  const adseSection = document.getElementById('adseSection');
+  const adseTemplate = document.getElementById('adseTemplate');
+  const adseInputs = document.querySelectorAll('.adse-input');
+
+  // Toggle ADSE section visibility
+  if (adseToggle && adseSection) {
+    adseToggle.addEventListener('change', function() {
+      adseSection.style.display = this.checked ? 'block' : 'none';
+    });
+  }
+
+  // Template loading
+  const adseTemplates = {
+    web_api: {
+      functional_core: `系统要解决的核心业务问题是什么？\\n\\n示例：用户通过API完成核心业务流程\\n- 用户认证和授权\\n- 资源的CRUD操作\\n- 业务逻辑处理\\n\\n请描述这个Slice要实现的核心功能，以及成功后的业务终态。`,
+      physical_constraints: `技术栈和环境约束\\n\\n示例：\\n- 框架: FastAPI / Flask\\n- 数据库: PostgreSQL / MySQL\\n- 认证方式: JWT / OAuth2\\n- API文档: OpenAPI / Swagger\\n- 性能要求: QPS > 1000\\n\\n请列出必须使用的技术栈、框架、性能要求等硬性约束。`,
+      semantic_contract: `逻辑法则与安全边界（这是最重要的"立法"部分）\\n\\n示例：\\n- 所有接口必须包含异常处理，返回标准错误格式\\n- 数据库查询必须加索引，避免全表扫描\\n- 敏感数据必须加密存储（密码使用bcrypt）\\n- 数据一致性由数据库事务保证\\n- 禁止直接返回数据库异常给客户端\\n- 所有外部API调用必须设置超时时间\\n\\n请列出AI生成代码时必须遵守的规则，包括禁止的操作和强制的要求。`,
+      exceptions_edges: `异常处理和边缘情况\\n\\n示例：\\n- API超时: 返回504，记录日志，触发告警\\n- 数据库连接失败: 重试3次，降级到缓存\\n- 并发冲突: 使用乐观锁，返回409 Conflict\\n- 参数校验失败: 返回400，详细说明错误字段\\n- 库存为零: 返回具体错误码，提示用户\\n\\n请考虑各种异常情况和边缘场景，以及对应的处理策略。`
+    },
+    frontend: {
+      functional_core: `用户通过UI完成核心交互操作\\n\\n示例：\\n- 用户登录/注册\\n- 数据展示和筛选\\n- 表单提交和反馈\\n\\n请描述这个Slice要实现的核心交互功能。`,
+      physical_constraints: `前端技术栈约束\\n\\n示例：\\n- 框架: React / Vue / Next.js\\n- UI库: Ant Design / Element Plus\\n- 状态管理: Redux / Zustand\\n- 构建工具: Vite / Webpack\\n- 浏览器兼容: Chrome 90+, Safari 14+\\n\\n请列出前端技术栈和兼容性要求。`,
+      semantic_contract: `前端代码规范和安全边界\\n\\n示例：\\n- 所有用户输入必须校验和转义，防止XSS\\n- 敏感操作必须二次确认\\n- API错误必须友好展示给用户\\n- 加载状态必须有明确提示\\n- 禁止使用eval()等危险函数\\n- 所有异步操作必须有错误处理\\n\\n请列出前端代码必须遵守的规则。`,
+      exceptions_edges: `前端异常和边缘情况\\n\\n示例：\\n- 网络请求失败: 展示重试按钮\\n- 页面加载超时: 显示骨架屏\\n- 用户权限不足: 跳转到403页面\\n- 浏览器不支持: 提示升级浏览器\\n\\n请考虑前端可能遇到的各种异常情况。`
+    },
+    backend_service: {
+      functional_core: `后端服务的核心业务逻辑\\n\\n示例：\\n- 数据处理和转换\\n- 消息队列消费\\n- 定时任务执行\\n\\n请描述后端服务的核心功能。`,
+      physical_constraints: `后端服务约束\\n\\n示例：\\n- 语言: Python / Go / Java\\n- 数据库: PostgreSQL / Redis\\n- 消息队列: RabbitMQ / Kafka\\n- 容器化: Docker / Kubernetes\\n- 资源限制: 内存 < 512MB\\n\\n请列出后端服务的技术栈和资源约束。`,
+      semantic_contract: `后端代码规范\\n\\n示例：\\n- 所有数据库操作必须在事务中执行\\n- 外部服务调用必须设置超时和熔断\\n- 敏感配置从环境变量读取，禁止硬编码\\n- 日志必须包含请求ID，便于追踪\\n- 禁止在循环中执行数据库查询\\n- 所有异常必须捕获并记录\\n\\n请列出后端代码必须遵守的规则。`,
+      exceptions_edges: `后端服务异常处理\\n\\n示例：\\n- 消息消费失败: 进入死信队列\\n- 定时任务超时: 发送告警\\n- 数据库连接池耗尽: 拒绝新请求\\n- 依赖服务不可用: 降级到本地缓存\\n\\n请考虑后端服务可能遇到的异常情况。`
+    },
+    data_pipeline: {
+      functional_core: `数据处理流程的核心功能\\n\\n示例：\\n- 数据抽取和转换\\n- 数据质量校验\\n- 数据聚合和分析\\n\\n请描述数据管道的核心功能。`,
+      physical_constraints: `数据管道约束\\n\\n示例：\\n- 处理框架: Apache Airflow / dbt\\n- 数据仓库: Snowflake / BigQuery\\n- 数据湖: S3 / HDFS\\n- 处理延迟: < 5分钟\\n- 数据量级: TB级\\n\\n请列出数据管道的技术栈和性能要求。`,
+      semantic_contract: `数据处理规范\\n\\n示例：\\n- 所有数据必须有schema定义\\n- 数据质量校验必须在转换前完成\\n- 敏感数据必须脱敏处理\\n- 数据血缘必须完整记录\\n- 禁止在数据管道中硬编码密钥\\n- 所有错误必须记录到监控系统\\n\\n请列出数据处理必须遵守的规则。`,
+      exceptions_edges: `数据管道异常处理\\n\\n示例：\\n- 数据源不可用: 重试3次，发送告警\\n- 数据格式异常: 记录到错误表，跳过该条数据\\n- 数据量突增: 触发扩容\\n- 数据质量不合格: 阻断下游任务\\n\\n请考虑数据管道可能遇到的异常情况。`
+    }
+  };
+
+  if (adseTemplate) {
+    adseTemplate.addEventListener('change', function() {
+      const template = adseTemplates[this.value];
+      if (template) {
+        document.querySelector('textarea[name="functional_core"]').value = template.functional_core;
+        document.querySelector('textarea[name="physical_constraints"]').value = template.physical_constraints;
+        document.querySelector('textarea[name="semantic_contract"]').value = template.semantic_contract;
+        document.querySelector('textarea[name="exceptions_edges"]').value = template.exceptions_edges;
+      }
+    });
+  }
+});
+</script>
+{% endblock %}

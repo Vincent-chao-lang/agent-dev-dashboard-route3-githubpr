@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>{{ t("login_title") }}</h1>
+  {% if msg %}
+    <div class="card">{{ t(msg) }}</div>
+  {% endif %}
+  <div class="card">
+    <form method="post" action="/login">
+      <label>{{ t("username") }}</label>
+      <input name="username" required />
+      <label>{{ t("password") }}</label>
+      <input name="password" type="password" required />
+      <div style="margin-top:12px;">
+        <button type="submit">{{ t("login") }}</button>
+      </div>
+    </form>
+  </div>
+
+  {% if allow_create_first_user %}
+    <div class="card">
+      <h3>{{ t("create_first_user") }}</h3>
+      <form method="post" action="/register">
+        <label>{{ t("username") }}</label>
+        <input name="username" required />
+        <label>{{ t("password") }}</label>
+        <input name="password" type="password" required />
+        <div style="margin-top:12px;">
+          <button type="submit">{{ t("create_user") }}</button>
+        </div>
+      </form>
+    </div>
+  {% else %}
+    <div class="card">
+      <h3>{{ t("register_with_invite") }}</h3>
+      <form method="post" action="/register">
+        <label>{{ t("username") }}</label>
+        <input name="username" required />
+        <label>{{ t("password") }}</label>
+        <input name="password" type="password" required />
+        <label>{{ t("invite_code") }}</label>
+        <input name="invite_code" required />
+        <div style="margin-top:12px;">
+          <button type="submit">{{ t("create_user") }}</button>
+        </div>
+      </form>
+    </div>
+  {% endif %}
+{% endblock %}

@@ -1,0 +1,334 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="row">
+    <div class="col">
+      <h1>{{ t("slice") }} {{ s.id }}: {{ s.title }}</h1>
+      <div class="muted">{{ t("projects") }}: <a href="/projects/{{project.id}}">{{project.name}}</a></div>
+      <div class="muted">{{ t("branch") }}={{ s.branch_name }} · {{ t("status") }}={{ s.status }} · {{ t("risk") }}={{ s.risk_level }}</div>
+      <div class="muted">{{ t("created_by") }} {{ creator.username }} {{ t("created_at") }} {{ s.created_at }}</div>
+
+      <div class="card">
+        <h3>{{ t("pr_github") }}</h3>
+        {% if pr_url %}
+          <div class="muted">PR: <a href="{{ pr_url }}">{{ pr_url }}</a> {% if pr_number %}(#{{ pr_number }}){% endif %}</div>
+        {% else %}
+          <div class="muted">{{ t("pr_no_pr") }}</div>
+        {% endif %}
+        <div class="btnrow" style="margin-top:10px;">
+          <form method="post" action="/slices/{{s.id}}/pr/create"><button>{{ t("create_update_pr") }}</button></form>
+        </div>
+        <div class="muted" style="margin-top:10px;">{{ t("pr_auto_comment") }}</div>
+        <hr style="border:0;border-top:1px solid #222a33; margin:14px 0;">
+        <h3>{{ t("pr_commands_manual") }}</h3>
+        <pre>git push -u origin {{ s.branch_name }}
+gh pr create --base {{ project.default_branch }} --head {{ s.branch_name }} --title "{{ t("slice") }} {{ s.id }}: {{ s.title }}"</pre>
+        <form method="post" action="/slices/{{s.id}}/push">
+          <button>{{ t("push_branch") }}</button>
+        </form>
+        <div class="muted">{{ t("push_branch_hint") }}</div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="card">
+        <h3>{{ t("actions") }}</h3>
+        <div class="btnrow">
+          <form method="post" action="/slices/{{s.id}}/context-pack">
+            <button>{{ t("generate_context_pack") }}</button>
+          </form>
+          <form method="post" action="/slices/{{s.id}}/gates">
+            <button>{{ t("run_gates") }}</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>{{ t("roles") }}</h3>
+        {% for role in ["pm","architect","dev","qa","ops"] %}
+          <div style="display:flex; gap:10px; align-items:center; margin:10px 0;">
+            <div style="min-width:90px;"><strong>{{ role }}</strong></div>
+            <form method="post" action="/slices/{{s.id}}/run/{{role}}">
+              <button>{{ t("run") }}</button>
+            </form>
+          </div>
+        {% endfor %}
+      </div>
+
+      <div class="card">
+        <h3>{{ t("latest_context_pack") }}</h3>
+        {% if ctx %}
+          <div class="muted">v{{ctx.version}} · {{ctx.created_at}} · {{ t("created_by") }} {{ ctx_user.username }}</div>
+          <pre>{{ ctx_preview }}</pre>
+        {% else %}
+          <div class="muted">{{ t("no_context_pack") }}</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col">
+      <div class="card">
+        <h2>{{ t("acceptance_criteria") }}</h2>
+        <form method="post" action="/slices/{{s.id}}/ac">
+          <div class="grid">
+            <div>
+              <label>{{ t("ac_code") }}</label>
+              <input name="code" required />
+            </div>
+            <div>
+              <label>{{ t("ac_verification") }}</label>
+              <input name="verification" required />
+            </div>
+          </div>
+          <label>{{ t("ac_text") }}</label>
+          <textarea name="text" required></textarea>
+          <div style="margin-top:12px;">
+            <button>{{ t("add_ac") }}</button>
+          </div>
+        </form>
+
+        <div style="margin-top:12px;"></div>
+        {% for a in ac_list %}
+          <div class="card" style="margin:10px 0;">
+            <div><strong>{{a.code}}</strong> — {{a.text}}</div>
+            <div class="muted">{{ t("verify") }}: {{a.verification}}</div>
+          </div>
+        {% else %}
+          <div class="muted">{{ t("no_ac") }}</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="card">
+        <h2>{{ t("runs") }}</h2>
+        {% for r in runs %}
+          <div class="card" style="margin:10px 0;">
+            <div>
+              <strong>{{ r.role }}</strong>
+              {% if r.status == "success" %}
+                <span class="pill ok">{{ t("run_status_success") }}</span>
+              {% elif r.status == "failed" %}
+                <span class="pill bad">{{ t("run_status_failed") }}</span>
+              {% else %}
+                <span class="pill">{{ t("run_status_" + r.status) }}</span>
+              {% endif %}
+              <span class="muted">{{ t("created_by") }} {{ r_user_map[r.id] }} · {{ t("created_at") }}={{ r.started_at }}</span>
+            </div>
+            <div class="muted">{{ t("worktree") }}: {{ r.worktree_path }}</div>
+            <pre>{{ r.log }}</pre>
+          </div>
+        {% else %}
+          <div class="muted">{{ t("no_runs") }}</div>
+        {% endfor %}
+      </div>
+
+      <div class="card">
+        <h2>{{ t("gates") }}</h2>
+        {% for g in gates %}
+          <div class="card" style="margin:10px 0;">
+            <div>
+              <strong>{{ g.name }}</strong>
+              {% if g.status == "pass" %}
+                <span class="pill ok">{{ t("gate_status_pass") }}</span>
+              {% else %}
+                <span class="pill bad">{{ t("gate_status_fail") }}</span>
+              {% endif %}
+              <span class="muted">{{ t("created_by") }} {{ g_user_map[g.id] }} · ran={{ g.ran_at }}</span>
+            </div>
+            <pre>{{ g.output }}</pre>
+          </div>
+        {% else %}
+          <div class="muted">{{ t("no_gates") }}</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  {% if adse_enabled %}
+  <div class="row">
+    <div class="col">
+      <div class="card" style="border-color: #8ab4f8;">
+        <h2>🚀 ADSE 增强模式工具链</h2>
+        <div class="muted">AI-Driven Software Engineering 工具</div>
+
+        <div style="margin-top:16px;">
+          <h3>P2C 追踪矩阵 (Prompt-to-Code)</h3>
+          <div class="muted">逻辑指令与代码文件的映射关系</div>
+          {% if p2c_matrix %}
+            <div style="overflow-x:auto; margin-top:12px;">
+              <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+                <thead>
+                  <tr style="border-bottom:1px solid #333;">
+                    <th style="padding:8px; text-align:left;">指令ID</th>
+                    <th style="padding:8px; text-align:left;">类别</th>
+                    <th style="padding:8px; text-align:left;">逻辑约束描述</th>
+                    <th style="padding:8px; text-align:left;">目标文件</th>
+                    <th style="padding:8px; text-align:left;">状态</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for item in p2c_matrix[:10] %}
+                  <tr style="border-bottom:1px solid #222a33;">
+                    <td style="padding:8px; font-family:monospace;">{{ item.instruction_id }}</td>
+                    <td style="padding:8px;">
+                      {% if item.instruction_category == "semantic" %}
+                        <span class="pill" style="border-color:#f59e0b; color:#fbbf24;">语义契约</span>
+                      {% elif item.instruction_category == "functional" %}
+                        <span class="pill" style="border-color:#3b82f6; color:#60a5fa;">功能核心</span>
+                      {% elif item.instruction_category == "physical" %}
+                        <span class="pill" style="border-color:#8b5cf6; color:#a78bfa;">物理约束</span>
+                      {% else %}
+                        <span class="pill">异常处理</span>
+                      {% endif %}
+                    </td>
+                    <td style="padding:8px; max-width:300px;">{{ item.instruction_desc[:80] }}{% if item.instruction_desc|length > 80 %}...{% endif %}</td>
+                    <td style="padding:8px; font-family:monospace; font-size:0.85rem;">{{ item.target_files or "-" }}</td>
+                    <td style="padding:8px;">
+                      {% if item.status == "compliant" %}
+                        <span class="pill ok">已合规</span>
+                      {% elif item.status == "needs_audit" %}
+                        <span class="pill" style="border-color:#f59e0b; color:#fbbf24;">待审计</span>
+                      {% elif item.status == "non_compliant" %}
+                        <span class="pill bad">不合规</span>
+                      {% else %}
+                        <span class="pill">待处理</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+              {% if p2c_matrix|length > 10 %}
+              <div class="muted" style="margin-top:8px;">显示前10项，共 {{ p2c_matrix|length }} 项</div>
+              {% endif %}
+            </div>
+          {% else %}
+          <div class="muted">暂无 P2C 追踪数据</div>
+          {% endif %}
+        </div>
+
+        <div style="margin-top:20px;">
+          <h3>逻辑覆盖度审计报告</h3>
+          <div class="muted">衡量代码对元提示词的满足程度</div>
+          {% if audit_reports %}
+            {% for report in audit_reports[:3] %}
+            <div class="card" style="margin:10px 0; background:#0f1318;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                  <strong>{{ report.audit_type|upper }}</strong>
+                  <span class="muted">· {{ report.created_at }}</span>
+                </div>
+                <div>
+                  {% if report.coverage_percent >= 80 %}
+                    <span class="pill ok">覆盖率: {{ "%.1f"|format(report.coverage_percent) }}%</span>
+                  {% elif report.coverage_percent >= 50 %}
+                    <span class="pill" style="border-color:#f59e0b; color:#fbbf24;">覆盖率: {{ "%.1f"|format(report.coverage_percent) }}%</span>
+                  {% else %}
+                    <span class="pill bad">覆盖率: {{ "%.1f"|format(report.coverage_percent) }}%</span>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="muted" style="margin-top:8px;">
+                总规则: {{ report.total_rules }} · 通过: {{ report.passed_rules }} · 失败: {{ report.failed_rules }}
+              </div>
+              {% if report.findings %}
+              <div style="margin-top:8px;">
+                <details>
+                  <summary style="cursor:pointer; color:#8ab4f8;">查看详细发现</summary>
+                  <div style="margin-top:8px; max-height:200px; overflow-y:auto;">
+                    {% for finding in report.findings[:5] %}
+                    <div style="padding:6px; border-left:2px solid {% if finding.result == 'pass' %}#2e7d32{% elif finding.result == 'fail' %}#b71c1c{% else %}#f59e0b{% endif %}; margin-bottom:4px;">
+                      <div style="font-size:0.9rem;">
+                        <span style="font-family:monospace;">{{ finding.instruction_id }}</span>
+                        {% if finding.result == 'pass' %}
+                          <span class="pill ok">通过</span>
+                        {% elif finding.result == 'fail' %}
+                          <span class="pill bad">失败</span>
+                        {% else %}
+                          <span class="pill" style="border-color:#f59e0b; color:#fbbf24;">部分</span>
+                        {% endif %}
+                      </div>
+                      <div class="muted" style="font-size:0.85rem;">{{ finding.instruction_desc[:100] }}...</div>
+                      {% if finding.notes %}
+                      <div class="muted" style="font-size:0.85rem; color:#f59e0b;">{{ finding.notes }}</div>
+                      {% endif %}
+                    </div>
+                    {% endfor %}
+                  </div>
+                </details>
+              </div>
+              {% endif %}
+            </div>
+            {% endfor %}
+          {% else %}
+          <div class="muted">暂无审计报告（运行 Dev Agent 后自动生成）</div>
+          {% endif %}
+        </div>
+
+        <div style="margin-top:20px;">
+          <h3>ADSE 项目控制表 2.0</h3>
+          <div class="muted">全生命周期跟踪能力</div>
+          {% if control_summary %}
+          <div style="display:flex; gap:12px; margin-top:12px;">
+            <div class="card" style="flex:1; padding:10px; background:#0f1318;">
+              <div style="font-size:1.5rem; font-weight:bold;">{{ control_summary.total }}</div>
+              <div class="muted">总控制项</div>
+            </div>
+            <div class="card" style="flex:1; padding:10px; background:#0f1318;">
+              <div style="font-size:1.5rem; font-weight:bold;">{{ control_summary.by_status.verified }}</div>
+              <div class="muted">已验证</div>
+            </div>
+            <div class="card" style="flex:1; padding:10px; background:#0f1318;">
+              <div style="font-size:1.5rem; font-weight:bold;">{{ "%.1f"|format(control_summary.coverage_percent) }}%</div>
+              <div class="muted">覆盖率</div>
+            </div>
+          </div>
+          {% endif %}
+          {% if project_control %}
+          <div style="margin-top:12px;">
+            <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+              <thead>
+                <tr style="border-bottom:1px solid #333;">
+                  <th style="padding:6px; text-align:left;">层级</th>
+                  <th style="padding:6px; text-align:left;">控制项</th>
+                  <th style="padding:6px; text-align:left;">状态</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in project_control[:8] %}
+                <tr style="border-bottom:1px solid #222a33;">
+                  <td style="padding:6px;">
+                    {% if item.control_layer == "base" %}
+                      <span class="pill">基础层</span>
+                    {% elif item.control_layer == "contract" %}
+                      <span class="pill" style="border-color:#f59e0b; color:#fbbf24;">契约层</span>
+                    {% elif item.control_layer == "slot" %}
+                      <span class="pill" style="border-color:#3b82f6; color:#60a5fa;">插槽层</span>
+                    {% else %}
+                      <span class="pill" style="border-color:#b71c1c; color:#ffc1c1;">防护层</span>
+                    {% endif %}
+                  </td>
+                  <td style="padding:6px;">{{ item.control_item[:60] }}...</td>
+                  <td style="padding:6px;">
+                    {% if item.status == "verified" %}
+                      <span class="pill ok">已验证</span>
+                    {% else %}
+                      <span class="pill">待验证</span>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="card muted">{{ t("refresh_tip") }}</div>
+{% endblock %}

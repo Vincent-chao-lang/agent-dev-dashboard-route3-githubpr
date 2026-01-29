@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>{{ title or t("app_name") }}</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; margin: 0; background: #0b0d10; color: #e8eaed; }
+    a { color: #8ab4f8; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .topbar { position: fixed; top: 0; left: 0; right: 0; padding: 14px 18px; background: #11151a; border-bottom: 1px solid #222a33; display:flex; gap:12px; align-items:center; justify-content: space-between; z-index: 1000; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 18px; padding-top: 70px; }
+    .card { background: #11151a; border: 1px solid #222a33; border-radius: 12px; padding: 14px; margin-bottom: 14px; }
+    .row { display:flex; gap: 14px; flex-wrap: wrap; }
+    .col { flex: 1; min-width: 290px; }
+    h1,h2,h3 { margin: 0 0 10px 0; }
+    .title { font-size: 2rem; }
+    .muted { color: #a7adb3; font-size: 0.95rem; }
+    label { display:block; margin-top:10px; margin-bottom:4px; }
+    input, textarea, select { width:100%; box-sizing:border-box; padding:10px; border-radius:10px; border:1px solid #2a3340; background:#0f1318; color:#e8eaed; }
+    textarea { min-height: 90px; }
+    button { padding: 10px 12px; border-radius: 10px; border: 1px solid #2a3340; background: #1b2430; color: #e8eaed; cursor: pointer; }
+    button:hover { filter: brightness(1.12); }
+    .pill { display:inline-block; padding: 3px 10px; border-radius: 999px; border:1px solid #2a3340; background:#0f1318; font-size: 0.85rem; }
+    .ok { border-color: #2e7d32; color:#b7f3b7; }
+    .bad { border-color: #b71c1c; color:#ffc1c1; }
+    pre { white-space: pre-wrap; background:#0f1318; border:1px solid #222a33; padding:12px; border-radius:12px; overflow:auto; }
+    .grid { display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+    .btnrow { display:flex; gap:10px; flex-wrap: wrap; }
+    .lang-switch { display: flex; gap: 8px; align-items: center; }
+    .lang-btn { padding: 4px 10px; font-size: 14px; min-width: 32px; }
+    .lang-btn.active { background: #2a3340; border-color: #8ab4f8; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div style="display:flex; gap:12px; align-items:center;">
+      <div><strong><a href="/" class="title">{{ t("app_name") }}</a></strong></div>
+      <span class="muted">{{ t("app_subtitle") }}</span>
+    </div>
+    <div style="display:flex; gap:16px; align-items:center;">
+      <div class="lang-switch">
+        <form method="post" action="/lang/en" style="display:inline;">
+          <button type="submit" class="lang-btn {% if lang == 'en' %}active{% endif %}">EN</button>
+        </form>
+        <form method="post" action="/lang/zh" style="display:inline;">
+          <button type="submit" class="lang-btn {% if lang == 'zh' %}active{% endif %}">中文</button>
+        </form>
+      </div>
+      <a href="/help">❓ {{ t("help") }}</a>
+      {% if user %}
+        <a href="/settings">{{ t("settings") }}</a>
+        <span class="muted"> · </span>
+        <span class="muted">👤 {{ user.username }}</span>
+        <span class="muted"> · </span>
+        <a href="/logout">{{ t("logout") }}</a>
+      {% else %}
+        <a href="/login">{{ t("login") }}</a>
+      {% endif %}
+    </div>
+  </div>
+  <div class="container">
+    {% block content %}{% endblock %}
+  </div>
+  {% block scripts %}{% endblock %}

@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python:*)",
+      "Bash(echo:*)",
+      "Bash(cat:*)",
+      "Bash(pip install:*)",
+      "Bash(open:*)"
+    ]
+  }
+}

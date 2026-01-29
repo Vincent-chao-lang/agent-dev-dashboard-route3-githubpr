@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Dev Dashboard - 推广介绍</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #0a0a0a;
+            color: #e8eaed;
+            overflow: hidden;
+        }
+
+        .slides-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        .slide {
+            width: 100%;
+            height: 100%;
+            display: none;
+            padding: 60px 80px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .slide.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Title Slide */
+        .slide.title {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .slide.title h1 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, #8ab4f8, #a78bfa, #fbbf24);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .slide.title .subtitle {
+            font-size: 1.5rem;
+            color: #a7adb3;
+            margin-bottom: 40px;
+        }
+
+        .slide.title .tagline {
+            font-size: 1.2rem;
+            color: #8ab4f8;
+            max-width: 800px;
+            line-height: 1.8;
+        }
+
+        /* Content Slides */
+        .slide h2 {
+            font-size: 2.5rem;
+            margin-bottom: 40px;
+            color: #8ab4f8;
+        }
+
+        .slide h3 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #e8eaed;
+        }
+
+        .slide p, .slide li {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            color: #c8ccd1;
+            margin-bottom: 15px;
+        }
+
+        .slide ul {
+            margin-left: 40px;
+        }
+
+        .slide li {
+            margin-bottom: 20px;
+        }
+
+        /* Feature Cards */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .feature-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 30px;
+            transition: transform 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: #8ab4f8;
+        }
+
+        .feature-card .icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .feature-card h4 {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            color: #e8eaed;
+        }
+
+        .feature-card p {
+            font-size: 1rem;
+            margin: 0;
+        }
+
+        /* Comparison Table */
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-top: 40px;
+        }
+
+        .comparison-column {
+            padding: 30px;
+            border-radius: 16px;
+        }
+
+        .comparison-column.traditional {
+            background: rgba(183, 28, 28, 0.1);
+            border: 1px solid rgba(183, 28, 28, 0.3);
+        }
+
+        .comparison-column.agent {
+            background: rgba(46, 125, 50, 0.1);
+            border: 1px solid rgba(46, 125, 50, 0.3);
+        }
+
+        .comparison-column h3 {
+            margin-bottom: 20px;
+        }
+
+        .comparison-column.traditional h3 {
+            color: #ffc1c1;
+        }
+
+        .comparison-column.agent h3 {
+            color: #b7f3b7;
+        }
+
+        /* Architecture Diagram */
+        .architecture {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 40px 0;
+        }
+
+        .arch-box {
+            background: rgba(138, 180, 248, 0.1);
+            border: 2px solid #8ab4f8;
+            border-radius: 12px;
+            padding: 20px 40px;
+            margin: 10px;
+            font-size: 1.1rem;
+        }
+
+        .arch-flow {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .arch-arrow {
+            font-size: 2rem;
+            color: #8ab4f8;
+        }
+
+        /* ADSE Section */
+        .adse-steps {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .adse-step {
+            background: rgba(167, 139, 250, 0.1);
+            border: 1px solid rgba(167, 139, 250, 0.3);
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .adse-step .step-number {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            line-height: 50px;
+            border-radius: 50%;
+            background: #a78bfa;
+            color: #0a0a0a;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .adse-step h4 {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            color: #a78bfa;
+        }
+
+        /* Use Cases */
+        .use-cases {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .use-case {
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            border-radius: 16px;
+            padding: 30px;
+        }
+
+        .use-case h4 {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: #fbbf24;
+        }
+
+        /* Navigation */
+        .navigation {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            gap: 15px;
+            z-index: 1000;
+        }
+
+        .nav-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(138, 180, 248, 0.2);
+            border: 1px solid #8ab4f8;
+            color: #8ab4f8;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .nav-btn:hover {
+            background: rgba(138, 180, 248, 0.4);
+            transform: scale(1.1);
+        }
+
+        /* Progress Bar */
+        .progress {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            background: #8ab4f8;
+            transition: width 0.3s;
+            z-index: 1000;
+        }
+
+        /* Slide Number */
+        .slide-number {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            font-size: 1rem;
+            color: #666;
+        }
+
+        /* CTA Slide */
+        .slide.cta {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .cta-button {
+            display: inline-block;
+            margin-top: 40px;
+            padding: 20px 60px;
+            background: #8ab4f8;
+            color: #0a0a0a;
+            text-decoration: none;
+            border-radius: 50px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .cta-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 10px 40px rgba(138, 180, 248, 0.4);
+        }
+
+        .cta-links {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            margin-top: 40px;
+        }
+
+        .cta-links a {
+            color: #8ab4f8;
+            text-decoration: none;
+            font-size: 1.1rem;
+        }
+
+        .cta-links a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .slide {
+                padding: 40px;
+            }
+
+            .slide.title h1 {
+                font-size: 2.5rem;
+            }
+
+            .features-grid,
+            .adse-steps,
+            .use-cases {
+                grid-template-columns: 1fr;
+            }
+
+            .comparison {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Fullscreen hint */
+        .fullscreen-hint {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            font-size: 0.9rem;
+            color: #666;
+            background: rgba(255,255,255,0.05);
+            padding: 10px 15px;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="fullscreen-hint">按 F 进入全屏模式</div>
+    <div class="slides-container">
+
+        <!-- Slide 1: Title -->
+        <div class="slide title active">
+            <h1>🚀 Agent Dev Dashboard</h1>
+            <p class="subtitle">基于 SOP 驱动的多 Agent 协作开发工作台</p>
+            <p class="tagline">将大模型 Agent 的风险降到可控范围<br>
+            让 AI 加速开发，而不是替代开发者</p>
+        </div>
+
+        <!-- Slide 2: Problem -->
+        <div class="slide">
+            <h2>😰 当前开发的痛点</h2>
+            <ul style="font-size: 1.3rem; margin-top: 40px;">
+                <li>📋 <strong>流程混乱</strong>：文档、代码、测试没有统一标准</li>
+                <li>🤖 <strong>AI 不可控</strong>：生成代码质量不稳定，风险难以评估</li>
+                <li>🔍 <strong>审核困难</strong>：无法追溯 AI 的决策过程和产物来源</li>
+                <li>⚡ <strong>效率低下</strong>：重复性工作占用大量开发时间</li>
+                <li>🚫 <strong>质量门禁缺失</strong>：自动化检查不完善，问题流入生产</li>
+            </ul>
+        </div>
+
+        <!-- Slide 3: Solution -->
+        <div class="slide">
+            <h2>✨ 我们的解决方案</h2>
+            <p style="font-size: 1.4rem; text-align: center; margin: 40px 0;">
+                <strong style="color: #8ab4f8;">SOP 驱动 + 产物约束 + 质量门禁 + 完整审计</strong>
+            </p>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="icon">🤖</div>
+                    <h4>多 Agent 协作</h4>
+                    <p>PM、架构师、开发、QA、运维 五大角色 AI 协同工作</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🔄</div>
+                    <h4>Git Worktree 隔离</h4>
+                    <p>每个任务独立环境，安全并发开发</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">✅</div>
+                    <h4>自动化门禁</h4>
+                    <p>Lint、Type Check、Contract、Test 全自动检查</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 4: Key Features -->
+        <div class="slide">
+            <h2>🎯 核心特性</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="icon">🧠</div>
+                    <h4>GLM-4.7 集成</h4>
+                    <p>智谱大模型驱动，生成专业文档和代码</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🗄️</div>
+                    <h4>灵活数据库</h4>
+                    <p>开发 SQLite / 生产 PostgreSQL 一键切换</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🔐</div>
+                    <h4>安全可控</h4>
+                    <p>路径白名单、权限管理、完整审计追踪</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🚀</div>
+                    <h4>ADSE 增强</h4>
+                    <p>四象限需求法，提升 AI 代码质量</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🔀</div>
+                    <h4>GitHub 集成</h4>
+                    <p>自动创建 PR，门禁结果自动评论</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🌐</div>
+                    <h4>多语言支持</h4>
+                    <p>中英文界面切换，国际化友好</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 5: Workflow -->
+        <div class="slide">
+            <h2>📋 标准化工作流程</h2>
+            <div class="architecture">
+                <div class="arch-flow">
+                    <div class="arch-box">创建 Slice</div>
+                    <div class="arch-arrow">→</div>
+                    <div class="arch-box">PM Agent</div>
+                    <div class="arch-arrow">→</div>
+                    <div class="arch-box">架构设计</div>
+                    <div class="arch-arrow">→</div>
+                    <div class="arch-box">开发</div>
+                    <div class="arch-arrow">→</div>
+                    <div class="arch-box">测试</div>
+                    <div class="arch-arrow">→</div>
+                    <div class="arch-box">运维</div>
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 40px; font-size: 1.2rem;">
+                <p>每个步骤都有明确的<strong style="color: #8ab4f8;">输入产物</strong>和<strong style="color: #8ab4f8;">输出标准</strong></p>
+                <p style="margin-top: 20px;">人类始终是<strong style="color: #fbbf24;">总指挥</strong>：设定目标、验收标准、审核合并</p>
+            </div>
+        </div>
+
+        <!-- Slide 6: ADSE Enhancement -->
+        <div class="slide">
+            <h2>🚀 ADSE 增强模式</h2>
+            <p style="font-size: 1.2rem; text-align: center; color: #a78bfa; margin-bottom: 30px;">
+                AI-Driven Software Engineering — 逻辑压制代码
+            </p>
+            <div class="adse-steps">
+                <div class="adse-step">
+                    <div class="step-number">1</div>
+                    <h4>立法</h4>
+                    <p>Meta-Prompting</p>
+                    <p style="font-size: 0.95rem; margin-top: 10px;">把经验变成 AI 无法违背的逻辑指令</p>
+                </div>
+                <div class="adse-step">
+                    <div class="step-number">2</div>
+                    <h4>筑墙</h4>
+                    <p>Constraints</p>
+                    <p style="font-size: 0.95rem; margin-top: 10px;">强制定义物理目录结构</p>
+                </div>
+                <div class="adse-step">
+                    <div class="step-number">3</div>
+                    <h4>审计</h4>
+                    <p>Logic Audit</p>
+                    <p style="font-size: 0.95rem; margin-top: 10px;">反向解构业务意图，与原始需求比对</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 7: Comparison -->
+        <div class="slide">
+            <h2>⚖️ 传统开发 vs Agent 协作</h2>
+            <div class="comparison">
+                <div class="comparison-column traditional">
+                    <h3>❌ 传统开发</h3>
+                    <ul>
+                        <li>手动编写文档、代码、测试</li>
+                        <li>流程不统一，依赖个人经验</li>
+                        <li>质量检查靠人工</li>
+                        <li>问题追溯困难</li>
+                        <li>重复劳动多，效率低</li>
+                    </ul>
+                </div>
+                <div class="comparison-column agent">
+                    <h3>✅ Agent 协作</h3>
+                    <ul>
+                        <li>AI 生成初稿，人类审核优化</li>
+                        <li>SOP 固定流程，输出标准化</li>
+                        <li>自动化门禁全覆盖</li>
+                        <li>完整审计，每个产物可追溯</li>
+                        <li>专注创意和决策</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 8: Use Cases -->
+        <div class="slide">
+            <h2>💼 适用场景</h2>
+            <div class="use-cases">
+                <div class="use-case">
+                    <h4>🏢 软件研发团队</h4>
+                    <p>标准化开发流程，提升代码质量和团队协作效率</p>
+                </div>
+                <div class="use-case">
+                    <h4>🚀 初创公司</h4>
+                    <p>快速迭代，AI 辅助生成文档和代码，加速产品落地</p>
+                </div>
+                <div class="use-case">
+                    <h4>🎓 教育培训</h4>
+                    <p>学习标准化软件工程流程，了解 AI 辅助开发的最佳实践</p>
+                </div>
+                <div class="use-case">
+                    <h4>🔧 内部工具开发</h4>
+                    <p>快速开发高质量的工具系统，完整留存开发文档</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 9: Tech Stack -->
+        <div class="slide">
+            <h2>🛠️ 技术架构</h2>
+            <div style="text-align: center; margin: 40px 0;">
+                <div style="font-size: 1.3rem; line-height: 2.5;">
+                    <p><strong style="color: #8ab4f8;">后端框架</strong>：FastAPI + SQLAlchemy</p>
+                    <p><strong style="color: #a78bfa;">AI 引擎</strong>：智谱 GLM-4.7 大模型</p>
+                    <p><strong style="color: #fbbf24;">数据库</strong>：SQLite (开发) / PostgreSQL (生产)</p>
+                    <p><strong style="color: #b7f3b7;">版本控制</strong>：Git Worktree 隔离</p>
+                    <p><strong style="color: #ffc1c1;">质量门禁</strong>：Lint / Type Check / Contract / Test</p>
+                </div>
+            </div>
+            <div style="background: rgba(138, 180, 248, 0.1); padding: 30px; border-radius: 12px; margin-top: 40px;">
+                <h4 style="color: #8ab4f8; margin-bottom: 15px;">🎁 开源免费</h4>
+                <p>完整源代码开放，可私有化部署，数据完全自主可控</p>
+            </div>
+        </div>
+
+        <!-- Slide 10: CTA -->
+        <div class="slide cta">
+            <h1 style="font-size: 3rem; margin-bottom: 30px;">🚀 立即开始</h1>
+            <p style="font-size: 1.5rem; max-width: 800px; margin: 0 auto;">
+                让 AI 成为您的开发助手，而不是替代者<br>
+                标准化流程，提升效率，降低风险
+            </p>
+            <div class="cta-links">
+                <a href="#">📖 查看文档</a>
+                <a href="#">💻 GitHub 仓库</a>
+                <a href="#">🎬 观看演示</a>
+            </div>
+            <p style="margin-top: 60px; font-size: 1.1rem; color: #a7adb3;">
+                Agent Dev Dashboard v2.0.0<br>
+                基于智谱 GLM-4.7 · 开源免费 · 可私有化部署
+            </p>
+        </div>
+
+    </div>
+
+    <div class="navigation">
+        <button class="nav-btn" onclick="prevSlide()">◀</button>
+        <button class="nav-btn" onclick="nextSlide()">▶</button>
+    </div>
+
+    <div class="slide-number">
+        <span id="currentSlide">1</span> / <span id="totalSlides">10</span>
+    </div>
+
+    <div class="progress" id="progress"></div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+
+        document.getElementById('totalSlides').textContent = totalSlides;
+
+        function showSlide(n) {
+            slides.forEach(slide => slide.classList.remove('active'));
+            currentSlide = (n + totalSlides) % totalSlides;
+            slides[currentSlide].classList.add('active');
+            document.getElementById('currentSlide').textContent = currentSlide + 1;
+            document.getElementById('progress').style.width = ((currentSlide + 1) / totalSlides * 100) + '%';
+        }
+
+        function nextSlide() {
+            showSlide(currentSlide + 1);
+        }
+
+        function prevSlide() {
+            showSlide(currentSlide - 1);
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                nextSlide();
+            } else if (e.key === 'ArrowLeft') {
+                prevSlide();
+            } else if (e.key === 'f' || e.key === 'F') {
+                toggleFullscreen();
+            }
+        });
+
+        // Touch support
+        let touchStartX = 0;
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+        });
+
+        document.addEventListener('touchend', (e) => {
+            const touchEndX = e.changedTouches[0].clientX;
+            const diff = touchStartX - touchEndX;
+            if (Math.abs(diff) > 50) {
+                if (diff > 0) {
+                    nextSlide();
+                } else {
+                    prevSlide();
+                }
+            }
+        });
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        // Initialize progress bar
+        document.getElementById('progress').style.width = (1 / totalSlides * 100) + '%';
+    </script>
+</body>
+</html>
